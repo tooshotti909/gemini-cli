@@ -1,0 +1,122 @@
+name: Memory Profile
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+jobs:
+  memory-profile:
+    name: Node Heap Profile
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts 2>/dev/null || npm install --ignore-scripts
+
+      - name: Build (if needed)
+        run: npm run build --if-present 2>/dev/null || true
+
+      - name: Run heap profile per package
+        run: |
+          node --expose-gc - <<'JSEOF'
+          const fs   = require('fs');
+          const path = require('path');
+          const v8   = require('v8');
+
+          // Packages / entry points to profile
+          const ENTRY_POINTS = [
+            { name: 'packages/a2a-server', entry: './packages/a2a-server/index.ts' },
+            { name: 'packages/core',       entry: './packages/core/src/index.ts'   },
+            { name: 'packages/cli',        entry: './packages/cli/src/index.ts'    },
+          ];
+
+          function heapMB() {
+            if (global.gc) global.gc();
+            const h = process.memoryUsage();
+            return {
+              heapUsed:     Math.round(h.heapUsed  / 1024),
+              heapTotal:    Math.round(h.heapTotal / 1024),
+              external:     Math.round(h.external  / 1024),
+              rss:          Math.round(h.rss        / 1024),
+            };
+          }
+
+          const results = [];
+          const before  = heapMB();
+
+          for (const ep of ENTRY_POINTS) {
+            if (global.gc) global.gc();
+            const snap_before = heapMB();
+
+            let loadError = null;
+            try {
+              // Use require for JS builds, skip gracefully for raw TS
+              const resolved = path.resolve(ep.entry.replace('.ts', '.js'));
+              if (fs.existsSync(resolved)) require(resolved);
+            } catch (e) {
+              loadError = e.message;
+            }
+
+            const snap_after = heapMB();
+            results.push({
+              package:          ep.name,
+              error:            loadError,
+              heap_used_kb:     snap_after.heapUsed,
+              heap_delta_kb:    snap_after.heapUsed - snap_before.heapUsed,
+              heap_total_kb:    snap_after.heapTotal,
+              external_kb:      snap_after.external,
+              rss_kb:           snap_after.rss,
+            });
+            console.log(`  ${ep.name}: heap_delta=${snap_after.heapUsed - snap_before.heapUsed}KB`);
+          }
+
+          // Closure / callback density heuristic:
+          // Count exported function-type values as a proxy for closure surface area
+          const closureHints = {};
+          for (const ep of ENTRY_POINTS) {
+            try {
+              const resolved = path.resolve(ep.entry.replace('.ts', '.js'));
+              if (fs.existsSync(resolved)) {
+                const mod = require(resolved);
+                const fnCount = Object.values(mod || {})
+                  .filter(v => typeof v === 'function').length;
+                closureHints[ep.name] = fnCount;
+              }
+            } catch (_) {}
+          }
+
+          const output = {
+            repo:         'tooshotti909/gemini-cli',
+            timestamp:    Date.now() / 1000,
+            run_date:     new Date().toISOString().slice(0, 10),
+            node_version: process.version,
+            baseline_heap_kb: before.heapUsed,
+            packages:     results,
+            closure_hints: closureHints,
+          };
+
+          fs.mkdirSync('memory_profile_output', { recursive: true });
+          const fname = `memory_profile_output/profile_${new Date().toISOString().replace(/[:.]/g,'_')}.json`;
+          fs.writeFileSync(fname, JSON.stringify(output, null, 2));
+          console.log(`\nProfile saved to ${fname}`);
+          JSEOF
+
+      - name: Upload profile artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: memory-profile-${{ github.run_id }}
+          path: memory_profile_output/
+          retention-days: 35
