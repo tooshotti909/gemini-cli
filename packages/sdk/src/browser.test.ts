@@ -50,8 +50,7 @@ describe('browser entry', () => {
       with: { type: 'json' },
     });
 
-    expect(sdkPackage.browser).toBe('dist/browser.js');
-    expect(sdkPackage.exports['.'].browser).toBe('./dist/browser.js');
     expect(sdkPackage.exports['./browser'].default).toBe('./dist/browser.js');
+    expect(sdkPackage.exports['./browser'].types).toBe('./dist/browser.d.ts');
   });
 });

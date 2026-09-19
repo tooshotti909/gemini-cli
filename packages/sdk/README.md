@@ -12,8 +12,7 @@ npm install @google/gemini-cli-sdk
 ## Browser-safe imports
 
 The full SDK runtime is still Node.js-oriented, but browser builds can safely
-import lightweight helpers from the package root via the `browser` export
-condition or explicitly from `@google/gemini-cli-sdk/browser`.
+import lightweight helpers from `@google/gemini-cli-sdk/browser`.
 
 ## Usage
 
