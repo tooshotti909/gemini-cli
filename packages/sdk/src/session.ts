@@ -24,7 +24,8 @@ import {
   PolicyDecision,
 } from '@google/gemini-cli-core';
 
-import { type Tool, SdkTool } from './tool.js';
+import type { Tool } from './tool-definition.js';
+import { SdkTool } from './tool-runtime.js';
 import { SdkAgentFilesystem } from './fs.js';
 import { SdkAgentShell } from './shell.js';
 import type {
