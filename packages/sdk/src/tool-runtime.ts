@@ -14,9 +14,9 @@ import {
   Kind,
   type MessageBus,
 } from '@google/gemini-cli-core';
-import type { z, type Tool } from './tool-definition.js';
-import type { SessionContext } from './types.js';
 import { ModelVisibleError } from './tool-definition.js';
+import type { Tool , z} from './tool-definition.js';
+import type { SessionContext } from './types.js';
 
 class SdkToolInvocation<T extends z.ZodTypeAny> extends BaseToolInvocation<
   z.infer<T>,
