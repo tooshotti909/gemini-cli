@@ -14,7 +14,7 @@ import {
   Kind,
   type MessageBus,
 } from '@google/gemini-cli-core';
-import { z, type Tool } from './tool-definition.js';
+import type { z, type Tool } from './tool-definition.js';
 import type { SessionContext } from './types.js';
 import { ModelVisibleError } from './tool-definition.js';
 
@@ -111,7 +111,7 @@ export class SdkTool<T extends z.ZodTypeAny> extends BaseDeclarativeTool<
       params,
       messageBus,
       this.definition.action,
-      context || this.context,
+      context ?? this.context,
       toolName || this.name,
       this.definition.sendErrorsToModel,
     );
