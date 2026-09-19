@@ -56,4 +56,13 @@ describe('browser entry', () => {
     expect(sdkPackage.exports['./session'].default).toBe('./dist/session.js');
     expect(sdkPackage.exports['./dist/*']).toBe('./dist/*');
   });
+
+  it('preserves the existing tool entrypoint surface', async () => {
+    const toolModule = await import('./tool.js');
+
+    expect(toolModule.tool).toBeTypeOf('function');
+    expect(toolModule.SdkTool).toBeTypeOf('function');
+    expect(toolModule.ModelVisibleError).toBeTypeOf('function');
+    expect(toolModule.z.object).toBeTypeOf('function');
+  });
 });
