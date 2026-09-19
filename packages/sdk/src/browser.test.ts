@@ -52,5 +52,6 @@ describe('browser entry', () => {
 
     expect(sdkPackage.exports['./browser'].default).toBe('./dist/browser.js');
     expect(sdkPackage.exports['./browser'].types).toBe('./dist/browser.d.ts');
+    expect(sdkPackage.exports['./dist/*']).toBe('./dist/*');
   });
 });
