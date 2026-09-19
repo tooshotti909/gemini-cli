@@ -16,6 +16,10 @@ import lightweight helpers from `@google/gemini-cli-sdk/browser`. That
 entrypoint intentionally excludes runtime-backed APIs such as `GeminiCliAgent`,
 `GeminiCliSession`, and `SdkTool`.
 
+```ts
+import { tool, z } from '@google/gemini-cli-sdk/browser';
+```
+
 ## Usage
 
 ```typescript
