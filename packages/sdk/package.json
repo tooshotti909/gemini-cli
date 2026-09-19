@@ -47,7 +47,6 @@
       "types": "./dist/types.d.ts",
       "default": "./dist/types.js"
     },
-    "./dist/*": "./dist/*",
     "./package.json": "./package.json"
   },
   "scripts": {

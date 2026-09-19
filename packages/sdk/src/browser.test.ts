@@ -54,7 +54,6 @@ describe('browser entry', () => {
     expect(sdkPackage.exports['./browser'].types).toBe('./dist/browser.d.ts');
     expect(sdkPackage.exports['./tool'].default).toBe('./dist/tool.js');
     expect(sdkPackage.exports['./session'].default).toBe('./dist/session.js');
-    expect(sdkPackage.exports['./dist/*']).toBe('./dist/*');
   });
 
   it('preserves the existing tool entrypoint surface', async () => {
